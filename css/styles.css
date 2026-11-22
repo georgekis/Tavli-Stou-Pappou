@@ -91,3 +91,10 @@ input,select{font:500 15px Inter,sans-serif;padding:8px 10px;border:1px solid va
 #auth{font-size:12px;white-space:nowrap;margin-top:4px}
 #auth button{background:rgba(255,255,255,.14);border:0;color:#fbf3e6;border-radius:999px;padding:4px 10px;font:600 12px Inter,sans-serif;cursor:pointer}
 #auth span{opacity:.8;margin-right:6px}
+
+/* Πεδίο κωδικού με «ματάκι» εμφάνισης */
+.pw{position:relative;display:block}
+.pw input{padding-right:44px}
+.pw-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:8px;display:grid;place-items:center}
+.pw-toggle:hover{color:var(--ink);background:color-mix(in srgb,var(--chip) 60%,transparent)}
+.pw-toggle svg{width:20px;height:20px}

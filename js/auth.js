@@ -109,7 +109,38 @@ async function savePassword(e) {
 
 let promptedForPassword = false;
 
+/* ---------- «Ματάκι» στα πεδία κωδικού ---------- */
+const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+
+function addPasswordToggles() {
+  document.querySelectorAll('input[type="password"]').forEach((input) => {
+    if (input.parentElement.classList.contains("pw")) return;
+    const wrap = document.createElement("span");
+    wrap.className = "pw";
+    input.replaceWith(wrap);
+    wrap.appendChild(input);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pw-toggle";
+    const sync = () => {
+      const shown = input.type === "text";
+      btn.innerHTML = shown ? EYE_OFF : EYE;
+      btn.setAttribute("aria-label", shown ? "Απόκρυψη κωδικού" : "Εμφάνιση κωδικού");
+      btn.title = btn.getAttribute("aria-label");
+    };
+    btn.onclick = () => { input.type = input.type === "password" ? "text" : "password"; sync(); input.focus(); };
+    sync();
+    wrap.appendChild(btn);
+
+    // Κάθε φορά που κλείνει το παράθυρο, ο κωδικός κρύβεται ξανά.
+    input.closest("dialog")?.addEventListener("close", () => { input.type = "password"; sync(); });
+  });
+}
+
 export function initAuth() {
+  addPasswordToggles();
   renderAuth();
   $("fLogin").onsubmit = loginWithPassword;
   $("lLink").onclick = sendLink;
