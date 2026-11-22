@@ -13,9 +13,10 @@
   <header>
     <h1>Τάβλι στου παππού</h1>
     <div class="top">
-      <p>Πρωτάθλημα · 2 € συμμετοχή ανά παίκτη σε κάθε αγώνα</p>
+      <p id="subtitle"></p>
       <span id="auth"></span>
     </div>
+    <div class="tbar" id="tbar"></div>
     <div class="points" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <nav role="tablist">
       <button role="tab" data-tab="agones" aria-selected="true">Αγώνες</button>
@@ -79,6 +80,52 @@
       <div class="err" id="pErr"></div>
       <div class="actions">
         <button type="button" class="btn danger left" id="pDel">Διαγραφή παίκτη</button>
+        <button type="button" class="btn" data-close>Άκυρο</button>
+        <button type="submit" class="btn primary">Αποθήκευση</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Νέο τουρνουά -->
+  <dialog id="dNewT">
+    <form class="dlg" id="fNewT">
+      <h3>Νέο τουρνουά</h3>
+      <label class="fld">Όνομα<input id="ntName" maxlength="60" required placeholder="π.χ. 2ο Πρωτάθλημα · Μάιος 2027"></label>
+      <div class="grid3">
+        <label class="fld">Συμμετοχή (€)<input id="ntFee" type="number" min="0" max="100" value="2" required></label>
+        <label class="fld">Βαθμοί νίκης<input id="ntWin" type="number" min="0" max="10" value="1" required></label>
+        <label class="fld">Νίκη με αντίπαλο στο 0<input id="ntShut" type="number" min="0" max="10" value="2" required></label>
+      </div>
+      <label class="fld">Γύροι
+        <select id="ntLegs">
+          <option value="2">Διπλός γύρος (ο καθένας παίζει δύο φορές με κάθε αντίπαλο)</option>
+          <option value="1">Μονός γύρος (μία φορά με κάθε αντίπαλο)</option>
+        </select>
+      </label>
+      <div class="fld">Παίκτες που συμμετέχουν<div class="checks" id="ntPlayers"></div></div>
+      <p class="note" id="ntSummary"></p>
+      <div class="err" id="ntErr"></div>
+      <div class="actions">
+        <button type="button" class="btn" data-close>Άκυρο</button>
+        <button type="submit" class="btn primary" id="ntSave">Δημιουργία</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Ρυθμίσεις τουρνουά -->
+  <dialog id="dEditT">
+    <form class="dlg" id="fEditT">
+      <h3>Ρυθμίσεις τουρνουά</h3>
+      <label class="fld">Όνομα<input id="etName" maxlength="60" required></label>
+      <div class="grid3">
+        <label class="fld">Συμμετοχή (€)<input id="etFee" type="number" min="0" max="100" required></label>
+        <label class="fld">Βαθμοί νίκης<input id="etWin" type="number" min="0" max="10" required></label>
+        <label class="fld">Νίκη με αντίπαλο στο 0<input id="etShut" type="number" min="0" max="10" required></label>
+      </div>
+      <p class="note" id="etNote"></p>
+      <div class="err" id="etErr"></div>
+      <div class="actions">
+        <button type="button" class="btn danger left" id="etDel">Διαγραφή τουρνουά</button>
         <button type="button" class="btn" data-close>Άκυρο</button>
         <button type="submit" class="btn primary">Αποθήκευση</button>
       </div>

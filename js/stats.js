@@ -1,18 +1,17 @@
-// Υπολογισμοί: βαθμολογία και πληρωμές.
-import { S, played, playerIds, pname } from "./state.js";
+// Υπολογισμοί: βαθμολογία και πληρωμές του τρέχοντος τουρνουά.
+import { S, played, participantIds, pname } from "./state.js";
 
 const byName = (x, y) => pname(x.p).localeCompare(pname(y.p), "el");
 
-/** Βαθμοί που παίρνει ο νικητής ενός αγώνα: λευκή (ηττημένος στο 0) ή απλή νίκη. */
+/** Βαθμοί που παίρνει ο νικητής ενός αγώνα: νίκη με τον αντίπαλο στο 0 ή απλή νίκη. */
 export function winnerPoints(m) {
-  const loser = Math.min(m.sa, m.sb);
-  return loser === 0 ? S.shutoutPts : S.winPts;
+  return Math.min(m.sa, m.sb) === 0 ? S.shutoutPts : S.winPts;
 }
 
 export function standings() {
   const t = {};
   const row = (p) => (t[p] ||= { p, pl: 0, w: 0, l: 0, sh: 0, pf: 0, pa: 0, pts: 0 });
-  playerIds().forEach(row);
+  participantIds().forEach(row);
 
   S.matches.filter(played).forEach((m) => {
     const A = row(m.a), B = row(m.b);
@@ -33,7 +32,7 @@ export function standings() {
 export function payments() {
   const t = {};
   const row = (p) => (t[p] ||= { p, played: 0, paid: 0, owed: 0 });
-  playerIds().forEach(row);
+  participantIds().forEach(row);
 
   S.matches.forEach((m) => {
     [[m.a, m.pa], [m.b, m.pb]].forEach(([p, paid]) => {

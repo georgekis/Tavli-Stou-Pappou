@@ -1,16 +1,19 @@
 // Σχεδίαση των καρτελών.
-import { sb } from "./supabase.js";
-import { FEE } from "./config.js";
-import { write } from "./data.js";
 import { standings, payments, winnerPoints } from "./stats.js";
 import { openMatch, openRound, openPlayer, togglePay } from "./dialogs.js";
-import { S, $, esc, played, pname, fmtDate, playerIds, roundNums, matchCount, showNotice } from "./state.js";
+import { renderTournamentBar } from "./tournaments.js";
+import { S, $, esc, played, pname, fmtDate, playerIds, roundNums, matchCount } from "./state.js";
 
 const view = () => $("view");
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 export function render() {
   if (!S.loaded) { view().innerHTML = '<div class="empty">Φόρτωση…</div>'; return; }
+  renderTournamentBar();
+  if (!S.tid && S.tab !== "paiktes") {
+    view().innerHTML = `<div class="empty">Δεν υπάρχει ακόμα τουρνουά.${S.canEdit ? " Πάτα «+ Νέο τουρνουά» πάνω." : ""}</div>`;
+    return;
+  }
   if (S.tab === "vathmologia") return renderStandings();
   if (S.tab === "pliromes") return renderPayments();
   if (S.tab === "paiktes") return renderPlayers();
@@ -20,7 +23,7 @@ export function render() {
 /* ---------- Αγώνες ---------- */
 function payChip(m, side) {
   const paid = side === "a" ? m.pa : m.pb;
-  const label = paid ? "✓ 2 €" : "2 € εκκρεμεί";
+  const label = paid ? `✓ ${S.fee} €` : `${S.fee} € εκκρεμεί`;
   return S.canEdit
     ? `<button class="pay ${paid ? "y" : "n"}" data-pay="${esc(m.id)}" data-side="${side}" title="Αλλαγή πληρωμής">${label}</button>`
     : `<span class="pay ${paid ? "y" : "n"}">${label}</span>`;
@@ -46,7 +49,7 @@ function renderMatches() {
   let h = `<div class="stats">
       <div class="stat"><b>${done}/${total}</b><span>αγώνες παίχτηκαν</span></div>
       <div class="stat"><b>${total - done}</b><span>απομένουν</span></div>
-      <div class="stat"><b>${paidCount * FEE} €</b><span>στο ταμείο</span></div>
+      <div class="stat"><b>${paidCount * S.fee} €</b><span>στο ταμείο</span></div>
     </div>
     <div class="filters">${filters.map(([k, l]) => `<button data-f="${k}" class="${S.filter === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
   if (S.canEdit) h += `<div class="toolbar"><span class="note" style="margin:0;margin-right:auto">Πάτα σε αγώνα για σκορ, ημερομηνία και πληρωμές.</span><button class="btn" id="addMatch">+ Αγώνας</button></div>`;
@@ -62,8 +65,8 @@ function renderMatches() {
     if (!ms.length && !(S.canEdit && S.filter === "all")) return;
 
     const R = S.rounds[r] || {};
-    const phase = r <= 7 ? "Α΄ Γύρος" : "Β΄ Γύρος";
-    if (phase !== lastPhase) { h += `<div class="phase">${phase}</div>`; lastPhase = phase; }
+    const phase = S.legs === 1 ? "" : r <= S.roundsPerLeg ? "Α΄ Γύρος" : "Β΄ Γύρος";
+    if (phase && phase !== lastPhase) { h += `<div class="phase">${phase}</div>`; lastPhase = phase; }
 
     h += `<div class="round"><h2><span>${r}η Αγωνιστική</span><small>${esc(R.dates || "")}</small></h2>`;
     h += ms.map(matchRow).join("");
@@ -86,12 +89,6 @@ function renderMatches() {
 function renderStandings() {
   const rows = standings();
   let h = "";
-  if (S.canEdit) {
-    h += `<div class="toolbar">
-      <label class="inline">Νίκη <input id="wp" type="number" min="0" max="10" value="${S.winPts}"></label>
-      <label class="inline">Νίκη με αντίπαλο στο 0 <input id="sp" type="number" min="0" max="10" value="${S.shutoutPts}"></label>
-    </div>`;
-  }
   h += `<table><thead><tr>
       <th></th><th class="n">Παίκτης</th><th title="Αγώνες">Αγ</th><th title="Νίκες">Ν</th><th title="Ήττες">Η</th>
       <th title="Νίκες με τον αντίπαλο στο 0">Λ</th><th title="Πόντοι υπέρ">+</th><th title="Πόντοι κατά">−</th><th title="Διαφορά">Δ</th><th title="Βαθμοί">Β</th>
@@ -105,18 +102,9 @@ function renderStandings() {
   });
   h += `</tbody></table>
     <p class="note">Νίκη: ${plural(S.winPts, "βαθμός", "βαθμοί")}. Νίκη με τον αντίπαλο στο 0 (Λ): ${plural(S.shutoutPts, "βαθμός", "βαθμοί")}.
-    Σε ισοβαθμία μετράει η διαφορά πόντων (Δ) και μετά οι πόντοι υπέρ (+).</p>`;
+    Σε ισοβαθμία μετράει η διαφορά πόντων (Δ) και μετά οι πόντοι υπέρ (+).${S.canEdit ? " Οι βαθμοί αλλάζουν από τις «Ρυθμίσεις τουρνουά»." : ""}</p>`;
   view().innerHTML = h;
 
-  if (!S.canEdit) return;
-  const bind = (id, column, current) => ($(id).onchange = async (e) => {
-    const v = Number(e.target.value);
-    if (!Number.isInteger(v) || v < 0 || v > 10) { e.target.value = current; return; }
-    try { await write(sb.from("settings").update({ [column]: v }).eq("id", 1)); }
-    catch (x) { showNotice(x.message); }
-  });
-  bind("wp", "win_pts", S.winPts);
-  bind("sp", "shutout_pts", S.shutoutPts);
 }
 
 /* ---------- Πληρωμές ---------- */
@@ -125,14 +113,14 @@ function renderPayments() {
   const paid = rows.reduce((s, r) => s + r.paid, 0);
   const owed = rows.reduce((s, r) => s + r.owed, 0);
   let h = `<div class="stats">
-      <div class="stat"><b>${paid * FEE} €</b><span>συγκεντρώθηκαν</span></div>
-      <div class="stat"><b>${owed * FEE} €</b><span>οφειλές από αγώνες που παίχτηκαν</span></div>
-      <div class="stat"><b>${S.matches.length * 2 * FEE} €</b><span>σύνολο πρωταθλήματος</span></div>
+      <div class="stat"><b>${paid * S.fee} €</b><span>συγκεντρώθηκαν</span></div>
+      <div class="stat"><b>${owed * S.fee} €</b><span>οφειλές από αγώνες που παίχτηκαν</span></div>
+      <div class="stat"><b>${S.matches.length * 2 * S.fee} €</b><span>σύνολο τουρνουά</span></div>
     </div>
     <table><thead><tr><th class="n">Παίκτης</th><th>Παίχτηκαν</th><th>Πλήρωσε</th><th>Χρωστάει</th></tr></thead><tbody>`;
   rows.forEach((r) => {
-    const owes = r.owed ? `<span class="owe">${r.owed * FEE} €</span>` : `<span class="zero">—</span>`;
-    h += `<tr><td class="n"><b>${esc(pname(r.p))}</b></td><td>${r.played}</td><td>${r.paid * FEE} €</td><td>${owes}</td></tr>`;
+    const owes = r.owed ? `<span class="owe">${r.owed * S.fee} €</span>` : `<span class="zero">—</span>`;
+    h += `<tr><td class="n"><b>${esc(pname(r.p))}</b></td><td>${r.played}</td><td>${r.paid * S.fee} €</td><td>${owes}</td></tr>`;
   });
   h += `</tbody></table><p class="note">«Χρωστάει» = αγώνες που έχουν παιχτεί χωρίς να έχει πληρωθεί η συμμετοχή. Προπληρωμές μετράνε στο «Πλήρωσε».</p>`;
   view().innerHTML = h;
@@ -144,11 +132,11 @@ function renderPlayers() {
   let h = S.canEdit ? `<div class="toolbar"><button class="btn primary" id="addPlayer">+ Νέος παίκτης</button></div>` : "";
   h += ids.length
     ? `<div class="plist">${ids.map((id) => `<div class="prow">
-        <span><b>${esc(pname(id))}</b> <small>· ${plural(matchCount(id), "αγώνας", "αγώνες")}</small></span>
+        <span><b>${esc(pname(id))}</b> <small>· ${plural(matchCount(id), "αγώνας", "αγώνες")} συνολικά</small></span>
         ${S.canEdit ? `<button class="link" data-player="${esc(id)}">Επεξεργασία</button>` : ""}
       </div>`).join("")}</div>`
     : `<div class="empty">Δεν υπάρχουν παίκτες.</div>`;
-  if (S.canEdit) h += `<p class="note">Νέος παίκτης δεν μπαίνει αυτόματα στο πρόγραμμα: πρόσθεσε τους αγώνες του από την καρτέλα «Αγώνες». Παίκτης με αγώνες δεν διαγράφεται· σβήσε πρώτα τους αγώνες του ή άλλαξε τον αντίπαλο.</p>`;
+  if (S.canEdit) h += `<p class="note">Οι παίκτες είναι κοινοί για όλα τα τουρνουά. Σε νέο τουρνουά διαλέγεις ποιοι συμμετέχουν. Αν μπει παίκτης σε τουρνουά που τρέχει ήδη, οι αγώνες του προστίθενται από την καρτέλα «Αγώνες». Παίκτης με αγώνες δεν διαγράφεται.</p>`;
   view().innerHTML = h;
 
   if (!S.canEdit) return;

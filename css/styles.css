@@ -98,3 +98,18 @@ input,select{font:500 15px Inter,sans-serif;padding:8px 10px;border:1px solid va
 .pw-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:8px;display:grid;place-items:center}
 .pw-toggle:hover{color:var(--ink);background:color-mix(in srgb,var(--chip) 60%,transparent)}
 .pw-toggle svg{width:20px;height:20px}
+
+/* Επιλογή τουρνουά */
+.tbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:-4px 0 12px}
+.tbar select{width:auto;max-width:100%;background:rgba(255,255,255,.12);color:#fbf3e6;border:1px solid rgba(255,255,255,.25);font-weight:600;padding:6px 10px}
+.tbar select option{color:#2b2118}
+.tbar button{background:rgba(255,255,255,.14);border:0;color:#fbf3e6;border-radius:999px;padding:6px 12px;font:600 12px Inter,sans-serif;cursor:pointer}
+.tbar button:hover{background:rgba(255,255,255,.24)}
+
+/* Φόρμα νέου τουρνουά */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grid3 .fld{font-size:12px}
+.checks{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 12px;max-height:220px;overflow:auto;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.checks label{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:14px}
+.checks input{width:auto}
+.tbar[hidden]{display:none}

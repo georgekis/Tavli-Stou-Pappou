@@ -1,31 +1,54 @@
 // Φόρτωση και αποθήκευση δεδομένων στη βάση.
 import { sb } from "./supabase.js";
-import { S, showNotice } from "./state.js";
+import { S, showNotice, savedTid, saveTid } from "./state.js";
 
 let onChange = () => {};
 /** Ορίζει τι τρέχει κάθε φορά που αλλάζουν τα δεδομένα (συνήθως: ξανασχεδίασε τη σελίδα). */
 export const onDataChange = (fn) => { onChange = fn; };
 
+/** Κρατά μόνο τα δεδομένα του επιλεγμένου τουρνουά. */
+function applyTournament() {
+  const ids = S.tournaments.map((t) => t.id);
+  if (!ids.includes(S.tid)) S.tid = ids.includes(savedTid()) ? savedTid() : (ids[0] ?? null);
+  const t = S.tournaments.find((x) => x.id === S.tid);
+
+  S.matches = S.allMatches.filter((m) => m.tournament_id === S.tid);
+  S.rounds = Object.fromEntries(S.allRounds.filter((r) => r.tournament_id === S.tid).map((r) => [r.r, r]));
+  S.fee = t?.fee ?? 2;
+  S.winPts = t?.win_pts ?? 1;
+  S.shutoutPts = t?.shutout_pts ?? 2;
+  S.legs = t?.legs ?? 2;
+  S.roundsPerLeg = t?.rounds_per_leg ?? 7;
+}
+
+/** Αλλαγή τουρνουά από τη λίστα. */
+export function selectTournament(id) {
+  S.tid = id;
+  saveTid(id);
+  applyTournament();
+  onChange();
+}
+
 export async function loadAll() {
-  const [p, r, m, s] = await Promise.all([
+  const [t, p, r, m] = await Promise.all([
+    sb.from("tournaments").select("*").order("created_at", { ascending: false }),
     sb.from("players").select("*"),
     sb.from("rounds").select("*"),
     sb.from("matches").select("*").order("r").order("n"),
-    sb.from("settings").select("*").eq("id", 1).maybeSingle(),
   ]);
 
-  if (p.error || r.error || m.error || s.error) {
+  if (t.error || p.error || r.error || m.error) {
     showNotice("Δεν ήταν δυνατή η φόρτωση των δεδομένων. Δοκίμασε ανανέωση της σελίδας.");
     S.loaded = true;
     onChange();
     return;
   }
 
+  S.tournaments = t.data;
   S.players = Object.fromEntries(p.data.map((x) => [x.id, x]));
-  S.rounds = Object.fromEntries(r.data.map((x) => [x.r, x]));
-  S.matches = m.data;
-  S.winPts = s.data?.win_pts ?? 1;
-  S.shutoutPts = s.data?.shutout_pts ?? 2;
+  S.allRounds = r.data;
+  S.allMatches = m.data;
+  applyTournament();
   S.loaded = true;
   showNotice("");
   onChange();
@@ -51,7 +74,7 @@ export function subscribe() {
 export async function write(query) {
   const { data, error } = await query.select();
   if (error) {
-    if (error.code === "23503") throw new Error("Ο παίκτης έχει αγώνες στο πρόγραμμα, οπότε δεν μπορεί να διαγραφεί.");
+    if (error.code === "23503") throw new Error("Ο παίκτης έχει αγώνες, οπότε δεν μπορεί να διαγραφεί.");
     if (error.code === "23505") throw new Error("Υπάρχει ήδη παίκτης με αυτό το όνομα.");
     throw new Error("Η αποθήκευση απέτυχε. Δοκίμασε ξανά.");
   }

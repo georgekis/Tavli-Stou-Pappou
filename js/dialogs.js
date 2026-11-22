@@ -28,7 +28,7 @@ export function openMatch(id) {
   editM = m;
   const ids = playerIds(), rounds = roundNums();
   const r = m ? m.r : (rounds[rounds.length - 1] || 1);
-  const maxR = Math.max(14, ...rounds) + 1;
+  const maxR = Math.max(S.legs * S.roundsPerLeg, ...rounds) + 1;
 
   $("mTitle").textContent = m ? `${pname(m.a)} – ${pname(m.b)}` : "Νέος αγώνας";
   $("mRound").innerHTML = Array.from({ length: maxR }, (_, i) => i + 1)
@@ -73,7 +73,7 @@ async function saveMatch(e) {
       if (editM.r !== r) body.n = nextN(r);
       await write(sb.from("matches").update(body).eq("id", editM.id));
     } else {
-      await write(sb.from("matches").insert({ ...body, n: nextN(r) }));
+      await write(sb.from("matches").insert({ ...body, n: nextN(r), tournament_id: S.tid }));
     }
     $("dMatch").close();
   } catch (x) { err.textContent = x.message; }
@@ -104,7 +104,7 @@ export function openRound(r) {
 async function saveRound(e) {
   e.preventDefault();
   try {
-    await write(sb.from("rounds").upsert({ r: editR, dates: $("rDates").value.trim(), bye: $("rBye").value || null }));
+    await write(sb.from("rounds").upsert({ tournament_id: S.tid, r: editR, dates: $("rDates").value.trim(), bye: $("rBye").value || null }));
     $("dRound").close();
   } catch (x) { $("rErr").textContent = x.message; }
 }
@@ -119,7 +119,7 @@ export function openPlayer(id) {
   $("pName").value = id ? pname(id) : "";
   $("pErr").textContent = "";
   $("pDel").hidden = !id;
-  $("pNote").textContent = id && n ? `Έχει ${n} ${n === 1 ? "αγώνα" : "αγώνες"} στο πρόγραμμα, οπότε δεν μπορεί να διαγραφεί.` : "";
+  $("pNote").textContent = id && n ? `Έχει ${n} ${n === 1 ? "αγώνα" : "αγώνες"} σε τουρνουά, οπότε δεν μπορεί να διαγραφεί.` : "";
 
   if (id) {
     armDelete($("pDel"), "Διαγραφή παίκτη", async () => {

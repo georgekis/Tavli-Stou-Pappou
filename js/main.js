@@ -4,6 +4,7 @@ import { loadAll, onDataChange, subscribe } from "./data.js";
 import { render } from "./render.js";
 import { initDialogs } from "./dialogs.js";
 import { initAuth } from "./auth.js";
+import { initTournaments } from "./tournaments.js";
 
 const TABS = ["agones", "vathmologia", "pliromes", "paiktes"];
 
@@ -24,6 +25,7 @@ function initTabs() {
 
 onDataChange(render);
 initDialogs();
+initTournaments();
 initAuth();
 initTabs();
 
