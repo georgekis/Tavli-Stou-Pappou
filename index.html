@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Τάβλι στου παππού</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f1e7; --card:#fffdf8; --ink:#2b2118; --muted:#7a6a58; --line:#e6dccb;
+  --wood:#7a4a2a; --accent:#b8442f; --ok:#2f7a4a; --okbg:#e3f1e7;
+  --warn:#9a5b00; --warnbg:#fbeed6; --chip:#efe6d6;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#1b1612; --card:#251e18; --ink:#f1e8da; --muted:#b3a28c; --line:#3a2f25;
+    --wood:#c98a55; --accent:#e46e55; --ok:#6cc58c; --okbg:#1f3326;
+    --warn:#f0b357; --warnbg:#3a2c16; --chip:#332a21; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,sans-serif}
+header{background:linear-gradient(135deg,#5a311a,#8a522c);color:#fbf3e6;padding:22px 18px 0}
+header h1{font-family:"Noto Serif",serif;font-size:24px;margin:0}
+header p{margin:4px 0 14px;opacity:.85;font-size:13px}
+.points{display:flex;gap:4px;margin-bottom:14px}
+.points i{width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:22px solid #e9d3b0;opacity:.9}
+.points i:nth-child(odd){border-top-color:#2a1a10}
+nav{display:flex;gap:2px;max-width:760px;margin:0 auto}
+nav button{flex:1;background:transparent;border:0;color:#f3e3cc;padding:11px 4px;font:600 14px Inter,sans-serif;border-radius:10px 10px 0 0;cursor:pointer}
+nav button[aria-selected=true]{background:var(--bg);color:var(--ink)}
+main{max-width:760px;margin:0 auto;padding:16px 14px 60px}
+.notice{background:var(--warnbg);color:var(--warn);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+.filters{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.filters button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font:500 13px Inter,sans-serif;cursor:pointer}
+.filters button.on{background:var(--wood);border-color:var(--wood);color:#fff}
+.round{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.round h2{margin:0;padding:10px 14px;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--chip) 60%,transparent)}
+.round h2 small{color:var(--muted);font-weight:500;font-size:12px}
+.phase{font-family:"Noto Serif",serif;font-size:18px;margin:18px 2px 8px;color:var(--wood)}
+.match{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.match.editable{cursor:pointer}
+.match.editable:hover{background:color-mix(in srgb,var(--chip) 50%,transparent)}
+.pl{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pl.r{align-items:flex-end;text-align:right}
+.name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.name.win{color:var(--ok)}
+.name.lose{color:var(--muted);font-weight:500}
+.pay{font-size:11px;padding:1px 7px;border-radius:999px;border:0;font-family:inherit;font-weight:600;width:max-content}
+.pay.y{background:var(--okbg);color:var(--ok)}
+.pay.n{background:var(--warnbg);color:var(--warn)}
+button.pay{cursor:pointer}
+.mid{display:flex;flex-direction:column;align-items:center;min-width:72px}
+.score{font-variant-numeric:tabular-nums;font-weight:700;font-size:18px;text-align:center}
+.score.pending{font-size:12px;font-weight:500;color:var(--muted)}
+.date{font-size:11px;color:var(--muted)}
+.bye{padding:8px 14px;font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.link{background:none;border:0;color:var(--wood);font:600 12px Inter,sans-serif;cursor:pointer;padding:2px 4px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-variant-numeric:tabular-nums}
+th,td{padding:9px 6px;text-align:center;border-bottom:1px solid var(--line)}
+th{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+td.n,th.n{text-align:left;padding-left:12px}
+tr:last-child td{border-bottom:0}
+td.pos{width:28px;color:var(--muted)}
+tr.first td{background:color-mix(in srgb,var(--okbg) 70%,transparent)}
+.pts{font-weight:700}
+.note{font-size:12px;color:var(--muted);margin:8px 2px}
+.owe{color:var(--warn);font-weight:700}
+.zero{color:var(--ok);font-weight:600}
+.plist{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.prow{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow small{color:var(--muted)}
+.toolbar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.inline{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.inline input{width:64px}
+dialog{border:0;border-radius:16px;padding:0;width:min(440px,94vw);background:var(--card);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(20,12,6,.5)}
+.dlg{padding:18px}
+.dlg h3{margin:0 0 12px;font-size:16px}
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:13px;color:var(--muted)}
+input,select{font:500 15px Inter,sans-serif;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+.side{display:grid;grid-template-columns:1fr 76px;gap:8px;align-items:end;margin-bottom:4px}
+.side input[type=number]{font-weight:700;font-size:18px;text-align:center}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:2px 0 12px}
+.chk input{width:auto}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:10px;font:600 14px Inter,sans-serif;cursor:pointer}
+.btn.primary{background:var(--wood);border-color:var(--wood);color:#fff}
+.btn.danger{color:var(--accent)}
+.btn.left{margin-right:auto}
+.btn:disabled{opacity:.5;cursor:default}
+.err{color:var(--accent);font-size:13px;min-height:18px}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+#auth{font-size:12px;white-space:nowrap;margin-top:4px}
+#auth button{background:rgba(255,255,255,.14);border:0;color:#fbf3e6;border-radius:999px;padding:4px 10px;font:600 12px Inter,sans-serif;cursor:pointer}
+#auth span{opacity:.8;margin-right:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Τάβλι στου παππού</h1>
+  <div class="top"><p>Πρωτάθλημα · 2 € συμμετοχή ανά παίκτη σε κάθε αγώνα</p><span id="auth"></span></div>
+  <div class="points" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <nav role="tablist">
+    <button role="tab" data-tab="agones" aria-selected="true">Αγώνες</button>
+    <button role="tab" data-tab="vathmologia" aria-selected="false">Βαθμολογία</button>
+    <button role="tab" data-tab="pliromes" aria-selected="false">Πληρωμές</button>
+    <button role="tab" data-tab="paiktes" aria-selected="false">Παίκτες</button>
+  </nav>
+</header>
+<main>
+  <div id="notice" class="notice" hidden></div>
+  <section id="view"></section>
+</main>
+
+<!-- Match dialog -->
+<dialog id="dMatch"><form class="dlg" id="fMatch">
+  <h3 id="mTitle"></h3>
+  <div class="fld">Αγωνιστική<select id="mRound"></select></div>
+  <div class="side"><label class="fld">Παίκτης 1<select id="mA"></select></label><label class="fld">Σκορ<input id="mSA" type="number" min="0" max="99" inputmode="numeric"></label></div>
+  <div class="chk"><input type="checkbox" id="mPA"><label for="mPA">Πλήρωσε 2 €</label></div>
+  <div class="side"><label class="fld">Παίκτης 2<select id="mB"></select></label><label class="fld">Σκορ<input id="mSB" type="number" min="0" max="99" inputmode="numeric"></label></div>
+  <div class="chk"><input type="checkbox" id="mPB"><label for="mPB">Πλήρωσε 2 €</label></div>
+  <label class="fld">Ημερομηνία διεξαγωγής<input id="mDate" type="date"></label>
+  <div class="err" id="mErr"></div>
+  <div class="actions">
+    <button type="button" class="btn danger left" id="mDel">Διαγραφή αγώνα</button>
+    <button type="button" class="btn" id="mClear">Καθαρισμός σκορ</button>
+    <button type="button" class="btn" data-close>Άκυρο</button>
+    <button type="submit" class="btn primary">Αποθήκευση</button>
+  </div>
+</form></dialog>
+
+<!-- Round dialog -->
+<dialog id="dRound"><form class="dlg" id="fRound">
+  <h3 id="rTitle"></h3>
+  <label class="fld">Διάστημα (π.χ. 14/11 – 22/11/2026)<input id="rDates" maxlength="60"></label>
+  <label class="fld">Ρεπό<select id="rBye"></select></label>
+  <div class="err" id="rErr"></div>
+  <div class="actions"><button type="button" class="btn" data-close>Άκυρο</button><button type="submit" class="btn primary">Αποθήκευση</button></div>
+</form></dialog>
+
+<!-- Player dialog -->
+<dialog id="dPlayer"><form class="dlg" id="fPlayer">
+  <h3 id="pTitle"></h3>
+  <label class="fld">Όνομα<input id="pName" maxlength="40" required></label>
+  <div class="note" id="pNote"></div>
+  <div class="err" id="pErr"></div>
+  <div class="actions">
+    <button type="button" class="btn danger left" id="pDel">Διαγραφή παίκτη</button>
+    <button type="button" class="btn" data-close>Άκυρο</button>
+    <button type="submit" class="btn primary">Αποθήκευση</button>
+  </div>
+</form></dialog>
+
+<dialog id="dLogin"><form class="dlg" id="fLogin">
+  <h3>Σύνδεση γραμματείας</h3>
+  <p class="note" style="margin:0 0 10px">Γράψε το email σου. Θα σου έρθει σύνδεσμος· πάτα τον από την ίδια συσκευή.</p>
+  <label class="fld">Email<input id="lEmail" type="email" autocomplete="email" required></label>
+  <div class="err" id="lErr"></div>
+  <div class="actions"><button type="button" class="btn" data-close>Άκυρο</button><button type="submit" class="btn primary" id="lSend">Αποστολή συνδέσμου</button></div>
+</form></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://xrrckrrpmtbpqbvxxkyi.supabase.co";
+const SUPABASE_KEY = "sb_publishable_CaQo16YvNBX_ca3UT9NlHA_XzBhQVWP"; // δημόσιο κλειδί, μόνο ανάγνωση χωρίς σύνδεση
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const FEE = 2;
+const S = { matches: [], rounds: {}, players: {}, winPts: 1, loaded: false, canEdit: false, email: null, filter: "all", tab: "agones" };
+const $ = id => document.getElementById(id);
+const view = $("view"), notice = $("notice");
+
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+const played = m => Number.isFinite(m.sa) && Number.isFinite(m.sb);
+const pname = id => S.players[id]?.name || id || "—";
+const fmtDate = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ""); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
+function showNotice(t){ notice.textContent = t; notice.hidden = !t; }
+const playerIds = () => Object.keys(S.players).sort((a,b) => pname(a).localeCompare(pname(b),"el"));
+const roundNums = () => [...new Set([...Object.keys(S.rounds).map(Number), ...S.matches.map(m => m.r)])].sort((a,b)=>a-b);
+const winPts = () => Number.isFinite(S.winPts) ? S.winPts : 1;
+
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
+
+/* ---------- Data layer ---------- */
+async function loadAll(){
+  const [p, r, m, s] = await Promise.all([
+    sb.from("players").select("*"),
+    sb.from("rounds").select("*"),
+    sb.from("matches").select("*").order("r").order("n"),
+    sb.from("settings").select("*").eq("id", 1).maybeSingle()
+  ]);
+  const err = p.error || r.error || m.error || s.error;
+  if (err){ showNotice("Δεν ήταν δυνατή η φόρτωση των δεδομένων. Δοκίμασε ανανέωση της σελίδας."); S.loaded = true; render(); return; }
+  S.players = Object.fromEntries(p.data.map(x => [x.id, x]));
+  S.rounds = Object.fromEntries(r.data.map(x => [x.r, x]));
+  S.matches = m.data;
+  S.winPts = s.data?.win_pts ?? 1;
+  S.loaded = true; showNotice(""); render();
+}
+let reloadTimer = null;
+const scheduleReload = () => { clearTimeout(reloadTimer); reloadTimer = setTimeout(loadAll, 250); };
+
+// Γράφει και επιβεβαιώνει ότι η αλλαγή πέρασε (χωρίς δικαίωμα, η βάση δεν επιστρέφει γραμμές)
+async function write(q){
+  const { data, error } = await q.select();
+  if (error){
+    if (error.code === "23503") throw new Error("Ο παίκτης έχει αγώνες στο πρόγραμμα, οπότε δεν μπορεί να διαγραφεί.");
+    if (error.code === "23505") throw new Error("Υπάρχει ήδη παίκτης με αυτό το όνομα.");
+    throw new Error("Η αποθήκευση απέτυχε. Δοκίμασε ξανά.");
+  }
+  if (!data || !data.length) throw new Error("Δεν έχεις δικαίωμα αλλαγών. Συνδέσου ως γραμματεία.");
+  scheduleReload();
+  return data;
+}
+
+/* ---------- Auth ---------- */
+async function refreshAuth(session){
+  S.email = session?.user?.email || null;
+  S.canEdit = false;
+  if (S.email){
+    const { data } = await sb.rpc("is_admin");
+    S.canEdit = data === true;
+  }
+  renderAuth(); render();
+}
+function renderAuth(){
+  const el = $("auth");
+  if (S.email){
+    el.innerHTML = `<span>${S.canEdit ? "Γραμματεία" : "Χωρίς δικαίωμα αλλαγών"}</span><button id="logout">Αποσύνδεση</button>`;
+    $("logout").onclick = async () => { await sb.auth.signOut(); };
+  } else {
+    el.innerHTML = `<button id="login">Σύνδεση</button>`;
+    $("login").onclick = () => { $("lErr").textContent = ""; $("lSend").disabled = false; $("dLogin").showModal(); };
+  }
+}
+$("fLogin").onsubmit = async e => {
+  e.preventDefault();
+  const email = $("lEmail").value.trim();
+  $("lSend").disabled = true;
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+  if (error){ $("lErr").textContent = "Η αποστολή απέτυχε. Δοκίμασε ξανά σε λίγο."; $("lSend").disabled = false; return; }
+  $("lErr").style.color = "var(--ok)";
+  $("lErr").textContent = "Έστειλα σύνδεσμο στο " + email + ". Άνοιξε το email σου.";
+};
+sb.auth.onAuthStateChange((_ev, session) => { setTimeout(() => refreshAuth(session), 0); });
+
+/* ---------- Tabs ---------- */
+const TABS = ["agones","vathmologia","pliromes","paiktes"];
+function setTab(t){
+  S.tab = TABS.includes(t) ? t : "agones";
+  document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === S.tab));
+  render();
+}
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => { history.replaceState(null, "", "#" + b.dataset.tab); setTab(b.dataset.tab); });
+window.addEventListener("hashchange", () => setTab(location.hash.slice(1)));
+
+/* ---------- Derived ---------- */
+function standings(){
+  const t = {};
+  playerIds().forEach(p => t[p] = { p, pl:0, w:0, l:0, pf:0, pa:0 });
+  S.matches.filter(played).forEach(m => {
+    [m.a, m.b].forEach(p => t[p] ||= { p, pl:0, w:0, l:0, pf:0, pa:0 });
+    const A = t[m.a], B = t[m.b];
+    A.pl++; B.pl++; A.pf += m.sa; A.pa += m.sb; B.pf += m.sb; B.pa += m.sa;
+    if (m.sa > m.sb){ A.w++; B.l++; } else if (m.sb > m.sa){ B.w++; A.l++; }
+  });
+  return Object.values(t).sort((x,y) => y.w - x.w || (y.pf-y.pa) - (x.pf-x.pa) || y.pf - x.pf || pname(x.p).localeCompare(pname(y.p),"el"));
+}
+function payments(){
+  const t = {};
+  playerIds().forEach(p => t[p] = { p, played:0, paid:0, owed:0 });
+  S.matches.forEach(m => {
+    [[m.a,m.pa],[m.b,m.pb]].forEach(([p,paid]) => {
+      t[p] ||= { p, played:0, paid:0, owed:0 };
+      if (paid) t[p].paid++;
+      if (played(m)) { t[p].played++; if (!paid) t[p].owed++; }
+    });
+  });
+  return Object.values(t).sort((x,y) => y.owed - x.owed || pname(x.p).localeCompare(pname(y.p),"el"));
+}
+const matchCount = id => S.matches.filter(m => m.a === id || m.b === id).length;
+
+/* ---------- Render ---------- */
+function render(){
+  if (!S.loaded){ view.innerHTML = '<div class="empty">Φόρτωση…</div>'; return; }
+  if (S.tab === "vathmologia") return renderTable();
+  if (S.tab === "pliromes") return renderPay();
+  if (S.tab === "paiktes") return renderPlayers();
+  renderMatches();
+}
+function payChip(m, side){
+  const paid = side === "a" ? m.pa : m.pb;
+  const label = paid ? "✓ 2 €" : "2 € εκκρεμεί";
+  if (S.canEdit) return `<button class="pay ${paid?"y":"n"}" data-pay="${esc(m.id)}" data-side="${side}" title="Αλλαγή πληρωμής">${label}</button>`;
+  return `<span class="pay ${paid?"y":"n"}">${label}</span>`;
+}
+function renderMatches(){
+  const total = S.matches.length, done = S.matches.filter(played).length;
+  const paidCount = S.matches.reduce((s,m) => s + (m.pa?1:0) + (m.pb?1:0), 0);
+  let h = `<div class="stats">
+    <div class="stat"><b>${done}/${total}</b><span>αγώνες παίχτηκαν</span></div>
+    <div class="stat"><b>${total-done}</b><span>απομένουν</span></div>
+    <div class="stat"><b>${paidCount*FEE} €</b><span>στο ταμείο</span></div></div>
+  <div class="filters">
+    ${[["all","Όλοι"],["done","Παίχτηκαν"],["todo","Εκκρεμούν"]].map(([k,l]) => `<button data-f="${k}" class="${S.filter===k?"on":""}">${l}</button>`).join("")}
+  </div>`;
+  if (S.canEdit) h += `<div class="toolbar"><span class="note" style="margin:0;margin-right:auto">Πάτα σε αγώνα για σκορ, ημερομηνία και πληρωμές.</span><button class="btn" id="addMatch">+ Αγώνας</button></div>`;
+  const byRound = {};
+  S.matches.forEach(m => (byRound[m.r] ||= []).push(m));
+  let lastPhase = "";
+  roundNums().forEach(r => {
+    let ms = (byRound[r] || []).sort((a,b)=>(a.n||0)-(b.n||0));
+    if (S.filter === "done") ms = ms.filter(played);
+    if (S.filter === "todo") ms = ms.filter(m => !played(m));
+    if (!ms.length && !(S.canEdit && S.filter === "all")) return;
+    const R = S.rounds[r] || {};
+    const phase = r <= 7 ? "Α΄ Γύρος" : "Β΄ Γύρος";
+    if (phase !== lastPhase){ h += `<div class="phase">${phase}</div>`; lastPhase = phase; }
+    h += `<div class="round"><h2><span>${r}η Αγωνιστική</span><small>${esc(R.dates||"")}</small></h2>`;
+    ms.forEach(m => {
+      const p = played(m), wa = p && m.sa > m.sb, wb = p && m.sb > m.sa;
+      h += `<div class="match ${S.canEdit?"editable":""}" data-id="${esc(m.id)}">
+        <div class="pl"><span class="name ${p?(wa?"win":"lose"):""}">${esc(pname(m.a))}</span>${payChip(m,"a")}</div>
+        <div class="mid"><span class="score ${p?"":"pending"}">${p ? `${m.sa} – ${m.sb}` : "εκκρεμεί"}</span>${m.date ? `<span class="date">${fmtDate(m.date)}</span>` : ""}</div>
+        <div class="pl r"><span class="name ${p?(wb?"win":"lose"):""}">${esc(pname(m.b))}</span>${payChip(m,"b")}</div>
+      </div>`;
+    });
+    if (R.bye || S.canEdit) h += `<div class="bye"><span>${R.bye ? "Ρεπό: " + esc(pname(R.bye)) : ""}</span>${S.canEdit ? `<button class="link" data-round="${r}">Επεξεργασία αγωνιστικής</button>` : ""}</div>`;
+    h += `</div>`;
+  });
+  view.innerHTML = h;
+  view.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { S.filter = b.dataset.f; render(); });
+  if (S.canEdit){
+    view.querySelectorAll(".match").forEach(el => el.onclick = e => { if (!e.target.closest("[data-pay]")) openMatch(el.dataset.id); });
+    view.querySelectorAll("[data-pay]").forEach(b => b.onclick = e => { e.stopPropagation(); togglePay(b.dataset.pay, b.dataset.side, b); });
+    view.querySelectorAll("[data-round]").forEach(b => b.onclick = () => openRound(Number(b.dataset.round)));
+    $("addMatch").onclick = () => openMatch(null);
+  }
+}
+function renderTable(){
+  const rows = standings(), wp = winPts();
+  let h = "";
+  if (S.canEdit) h += `<div class="toolbar"><label class="inline">Βαθμοί ανά νίκη <input id="wp" type="number" min="0" max="10" step="1" value="${wp}"></label></div>`;
+  h += `<table><thead><tr><th></th><th class="n">Παίκτης</th><th title="Αγώνες">Αγ</th><th title="Νίκες">Ν</th><th title="Ήττες">Η</th><th title="Πόντοι υπέρ">+</th><th title="Πόντοι κατά">−</th><th title="Διαφορά">Δ</th><th title="Βαθμοί">Β</th></tr></thead><tbody>`;
+  rows.forEach((r,i) => {
+    const d = r.pf - r.pa;
+    h += `<tr class="${i===0 && r.pl ? "first":""}"><td class="pos">${i+1}</td><td class="n"><b>${esc(pname(r.p))}</b></td><td>${r.pl}</td><td>${r.w}</td><td>${r.l}</td><td>${r.pf}</td><td>${r.pa}</td><td>${d>0?"+":""}${d}</td><td class="pts">${r.w*wp}</td></tr>`;
+  });
+  h += `</tbody></table><p class="note">${wp} ${wp===1?"βαθμός":"βαθμοί"} ανά νίκη. Σε ισοβαθμία μετράει η διαφορά πόντων (Δ) και μετά οι πόντοι υπέρ (+).</p>`;
+  view.innerHTML = h;
+  if (S.canEdit) $("wp").onchange = async e => {
+    const v = Number(e.target.value);
+    if (!Number.isInteger(v) || v < 0 || v > 10) { e.target.value = wp; return; }
+    try { await write(sb.from("settings").update({ win_pts: v }).eq("id", 1)); } catch(err) { showNotice(err.message); }
+  };
+}
+function renderPay(){
+  const rows = payments();
+  const paid = rows.reduce((s,r)=>s+r.paid,0), owed = rows.reduce((s,r)=>s+r.owed,0);
+  let h = `<div class="stats">
+    <div class="stat"><b>${paid*FEE} €</b><span>συγκεντρώθηκαν</span></div>
+    <div class="stat"><b>${owed*FEE} €</b><span>οφειλές από αγώνες που παίχτηκαν</span></div>
+    <div class="stat"><b>${S.matches.length*2*FEE} €</b><span>σύνολο πρωταθλήματος</span></div></div>
+  <table><thead><tr><th class="n">Παίκτης</th><th>Παίχτηκαν</th><th>Πλήρωσε</th><th>Χρωστάει</th></tr></thead><tbody>`;
+  rows.forEach(r => {
+    h += `<tr><td class="n"><b>${esc(pname(r.p))}</b></td><td>${r.played}</td><td>${r.paid*FEE} €</td><td>${r.owed ? `<span class="owe">${r.owed*FEE} €</span>` : `<span class="zero">—</span>`}</td></tr>`;
+  });
+  h += `</tbody></table><p class="note">«Χρωστάει» = αγώνες που έχουν παιχτεί χωρίς να έχει πληρωθεί η συμμετοχή. Προπληρωμές μετράνε στο «Πλήρωσε».</p>`;
+  view.innerHTML = h;
+}
+function renderPlayers(){
+  const ids = playerIds();
+  let h = S.canEdit ? `<div class="toolbar"><button class="btn primary" id="addPlayer">+ Νέος παίκτης</button></div>` : "";
+  h += ids.length ? `<div class="plist">${ids.map(id => {
+    const n = matchCount(id);
+    return `<div class="prow"><span><b>${esc(pname(id))}</b> <small>· ${n} ${n===1?"αγώνας":"αγώνες"}</small></span>${S.canEdit ? `<button class="link" data-player="${esc(id)}">Επεξεργασία</button>` : ""}</div>`;
+  }).join("")}</div>` : `<div class="empty">Δεν υπάρχουν παίκτες.</div>`;
+  if (S.canEdit) h += `<p class="note">Νέος παίκτης δεν μπαίνει αυτόματα στο πρόγραμμα: πρόσθεσε τους αγώνες του από την καρτέλα «Αγώνες». Παίκτης με αγώνες δεν διαγράφεται· σβήσε πρώτα τους αγώνες του ή άλλαξε τον αντίπαλο.</p>`;
+  view.innerHTML = h;
+  if (S.canEdit){
+    $("addPlayer").onclick = () => openPlayer(null);
+    view.querySelectorAll("[data-player]").forEach(b => b.onclick = () => openPlayer(b.dataset.player));
+  }
+}
+
+/* ---------- Helpers ---------- */
+function armDelete(btn, label, action){
+  btn.textContent = label; btn.dataset.armed = "";
+  btn.onclick = async () => {
+    if (btn.dataset.armed !== "1"){ btn.dataset.armed = "1"; btn.textContent = "Σίγουρα; Πάτα ξανά"; return; }
+    btn.disabled = true; try { await action(); } finally { btn.disabled = false; }
+  };
+}
+const opts = (ids, sel, empty) => (empty ? `<option value="">${empty}</option>` : "") + ids.map(id => `<option value="${esc(id)}" ${id===sel?"selected":""}>${esc(pname(id))}</option>`).join("");
+const nextN = r => Math.max(0, ...S.matches.filter(m => m.r === r).map(m => m.n || 0)) + 1;
+
+/* ---------- Match dialog ---------- */
+let editM = null;
+function openMatch(id){
+  const m = id ? S.matches.find(x => x.id === id) : null;
+  editM = m;
+  const ids = playerIds(), rounds = roundNums();
+  const r = m ? m.r : (rounds[rounds.length-1] || 1);
+  $("mTitle").textContent = m ? `${pname(m.a)} – ${pname(m.b)}` : "Νέος αγώνας";
+  const maxR = Math.max(14, ...rounds) + 1;
+  $("mRound").innerHTML = Array.from({length:maxR}, (_,i)=>i+1).map(n => `<option value="${n}" ${n===r?"selected":""}>${n}η Αγωνιστική</option>`).join("");
+  $("mA").innerHTML = opts(ids, m?.a, "— επίλεξε —");
+  $("mB").innerHTML = opts(ids, m?.b, "— επίλεξε —");
+  $("mSA").value = m && played(m) ? m.sa : "";
+  $("mSB").value = m && played(m) ? m.sb : "";
+  $("mPA").checked = !!m?.pa; $("mPB").checked = !!m?.pb;
+  $("mDate").value = m?.date || "";
+  $("mErr").textContent = "";
+  $("mDel").hidden = !m; $("mClear").hidden = !m || !played(m);
+  if (m) armDelete($("mDel"), "Διαγραφή αγώνα", async () => {
+    try { await write(sb.from("matches").delete().eq("id", m.id)); $("dMatch").close(); } catch(err) { $("mErr").textContent = err.message; }
+  });
+  $("dMatch").showModal();
+}
+$("mClear").onclick = () => { $("mSA").value = ""; $("mSB").value = ""; $("mClear").hidden = true; };
+$("fMatch").onsubmit = async e => {
+  e.preventDefault();
+  const err = $("mErr");
+  const a = $("mA").value, b = $("mB").value, r = Number($("mRound").value);
+  if (!a || !b){ err.textContent = "Επίλεξε και τους δύο παίκτες."; return; }
+  if (a === b){ err.textContent = "Ο παίκτης δεν μπορεί να παίξει με τον εαυτό του."; return; }
+  const vA = $("mSA").value.trim(), vB = $("mSB").value.trim();
+  let sa = null, sb_ = null;
+  if (vA !== "" || vB !== ""){
+    sa = Number(vA); sb_ = Number(vB);
+    if (vA === "" || vB === "" || !Number.isInteger(sa) || !Number.isInteger(sb_) || sa < 0 || sb_ < 0 || sa > 99 || sb_ > 99){ err.textContent = "Συμπλήρωσε και τα δύο σκορ με ακέραιους αριθμούς."; return; }
+    if (sa === sb_){ err.textContent = "Στο τάβλι δεν υπάρχει ισοπαλία — έλεγξε το σκορ."; return; }
+  }
+  const body = { r, a, b, sa, sb: sb_, pa: $("mPA").checked, pb: $("mPB").checked, date: $("mDate").value || null };
+  try {
+    if (editM){
+      if (editM.r !== r) body.n = nextN(r);
+      await write(sb.from("matches").update(body).eq("id", editM.id));
+    } else {
+      await write(sb.from("matches").insert({ ...body, n: nextN(r) }));
+    }
+    $("dMatch").close();
+  } catch(x){ err.textContent = x.message; }
+};
+async function togglePay(id, side, btn){
+  const m = S.matches.find(x => x.id === id); if (!m) return;
+  btn.disabled = true;
+  const key = side === "a" ? "pa" : "pb";
+  try { await write(sb.from("matches").update({ [key]: !m[key] }).eq("id", id)); }
+  catch(x){ showNotice(x.message); btn.disabled = false; }
+}
+
+/* ---------- Round dialog ---------- */
+let editR = null;
+function openRound(r){
+  editR = r;
+  const R = S.rounds[r] || {};
+  $("rTitle").textContent = `${r}η Αγωνιστική`;
+  $("rDates").value = R.dates || "";
+  $("rBye").innerHTML = opts(playerIds(), R.bye, "— κανένας —");
+  $("rErr").textContent = "";
+  $("dRound").showModal();
+}
+$("fRound").onsubmit = async e => {
+  e.preventDefault();
+  try { await write(sb.from("rounds").upsert({ r: editR, dates: $("rDates").value.trim(), bye: $("rBye").value || null })); $("dRound").close(); }
+  catch(x){ $("rErr").textContent = x.message; }
+};
+
+/* ---------- Player dialog ---------- */
+let editP = null;
+function openPlayer(id){
+  editP = id;
+  $("pTitle").textContent = id ? "Επεξεργασία παίκτη" : "Νέος παίκτης";
+  $("pName").value = id ? pname(id) : "";
+  $("pErr").textContent = "";
+  const n = id ? matchCount(id) : 0;
+  $("pDel").hidden = !id;
+  $("pNote").textContent = id && n ? `Έχει ${n} ${n===1?"αγώνα":"αγώνες"} στο πρόγραμμα, οπότε δεν μπορεί να διαγραφεί.` : "";
+  if (id){
+    armDelete($("pDel"), "Διαγραφή παίκτη", async () => {
+      try { await write(sb.from("players").delete().eq("id", id)); $("dPlayer").close(); } catch(x) { $("pErr").textContent = x.message; }
+    });
+    $("pDel").disabled = n > 0;
+  }
+  $("dPlayer").showModal();
+}
+$("fPlayer").onsubmit = async e => {
+  e.preventDefault();
+  const name = $("pName").value.trim();
+  if (!name){ $("pErr").textContent = "Γράψε όνομα."; return; }
+  if (playerIds().some(id => id !== editP && pname(id).toLocaleLowerCase("el") === name.toLocaleLowerCase("el"))){ $("pErr").textContent = "Υπάρχει ήδη παίκτης με αυτό το όνομα."; return; }
+  try {
+    if (editP) await write(sb.from("players").update({ name }).eq("id", editP));
+    else await write(sb.from("players").insert({ name }));
+    $("dPlayer").close();
+  } catch(x){ $("pErr").textContent = x.message; }
+};
+
+/* ---------- Start ---------- */
+renderAuth();
+setTab(location.hash.slice(1));
+const slow = setTimeout(() => { if (!S.loaded) showNotice("Τα δεδομένα αργούν να φορτώσουν…"); }, 10000);
+loadAll().then(() => clearTimeout(slow));
+sb.channel("tavli")
+  .on("postgres_changes", { event: "*", schema: "public" }, scheduleReload)
+  .subscribe();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAll(); });
+</script>
+</body>
+</html>
