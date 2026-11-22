@@ -89,12 +89,28 @@
   <dialog id="dLogin">
     <form class="dlg" id="fLogin">
       <h3>Σύνδεση γραμματείας</h3>
-      <p class="note" style="margin:0 0 10px">Γράψε το email σου. Θα σου έρθει σύνδεσμος· πάτα τον από την ίδια συσκευή.</p>
-      <label class="fld">Email<input id="lEmail" type="email" autocomplete="email" required></label>
+      <label class="fld">Email<input id="lEmail" type="email" autocomplete="username" required></label>
+      <label class="fld">Κωδικός<input id="lPass" type="password" autocomplete="current-password"></label>
       <div class="err" id="lErr"></div>
       <div class="actions">
+        <button type="button" class="btn left" id="lLink">Πρώτη φορά; Στείλε σύνδεσμο</button>
         <button type="button" class="btn" data-close>Άκυρο</button>
-        <button type="submit" class="btn primary" id="lSend">Αποστολή συνδέσμου</button>
+        <button type="submit" class="btn primary" id="lSend">Σύνδεση</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Ορισμός κωδικού -->
+  <dialog id="dPass">
+    <form class="dlg" id="fPass">
+      <h3>Ορισμός κωδικού</h3>
+      <p class="note" style="margin:0 0 10px">Με αυτόν θα μπαίνεις από οποιαδήποτε συσκευή χωρίς email. Τουλάχιστον 8 χαρακτήρες.</p>
+      <label class="fld">Νέος κωδικός<input id="nPass" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label class="fld">Ξανά ο κωδικός<input id="nPass2" type="password" autocomplete="new-password" minlength="8" required></label>
+      <div class="err" id="nErr"></div>
+      <div class="actions">
+        <button type="button" class="btn" data-close>Άκυρο</button>
+        <button type="submit" class="btn primary" id="nSave">Αποθήκευση</button>
       </div>
     </form>
   </dialog>
